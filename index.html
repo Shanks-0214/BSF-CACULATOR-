@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bsf calc</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.5.0/math.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color:rgb(9, 196, 220);
+            --accent-color:rgb(14, 2, 2);
+            --text-color: #ffffff;
+            --dark-bg: #151577;
+            --light-bg: rgba(26, 26, 46, 0.7);
+            --button-hover: #ff0055;
+            --success-color: #299d67;
+            --warning-color: #ffaa00;
+            --danger-color: #ff3366;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--dark-bg) url('back.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(156, 0, 0, 0.5);
+            z-index: -1;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 700px;
+            padding: 30px;
+            border-radius: 20px;
+            background: var(--light-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 25px rgba(0, 225, 255, 0.3);
+            text-align: center;
+            z-index: 1;
+            border: 1px solid rgba(0, 225, 255, 0.2);
+        }
+        
+        h1 {
+            color: var(--primary-color);
+            text-shadow: 0 0 15px rgba(0, 225, 255, 0.7);
+            margin-bottom: 25px;
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+        }
+        
+        h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(0, 225, 255, 0.3);
+        }
+        
+        nav button {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            padding: 12px 20px;
+            cursor: pointer;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 30%;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        nav button:hover {
+            background: var(--primary-color);
+            color: var(--dark-bg);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 225, 255, 0.4);
+        }
+        
+        nav button.active {
+            background: var(--primary-color);
+            color: var(--dark-bg);
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 225, 255, 0.15);
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin: 15px 0;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            color: var(--primary-color);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid var(--primary-color);
+            background: rgba(0, 0, 0, 0.6);
+            color: var(--text-color);
+            font-size: 1rem;
+            margin-bottom: 15px;
+            outline: none;
+        }
+        
+        input:focus, select:focus {
+            box-shadow: 0 0 10px var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .calculate {
+            background: var(--accent-color);
+            color: white;
+            padding: 15px 25px;
+            border: none;
+            cursor: pointer;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 15px;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .calculate:hover {
+            background: var(--button-hover);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 0, 127, 0.4);
+        }
+        
+        .result {
+            margin-top: 25px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 10px;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-left: 4px solid var(--primary-color);
+            text-align: left;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .sci-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        .sci-buttons button {
+            background: rgba(0, 0, 0, 0.5);
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+            padding: 12px 5px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+        
+        .sci-buttons button:hover {
+            background: var(--primary-color);
+            color: var(--dark-bg);
+            transform: translateY(-2px);
+            box-shadow: 0 3px 10px rgba(0, 225, 255, 0.4);
+        }
+        
+        .sci-buttons button.func {
+            background: rgba(0, 0, 0, 0.2);
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .sci-buttons button.func:hover {
+            background: var(--accent-color);
+            color: rgb(206, 49, 49);
+        }
+        
+        .sci-buttons button.equals {
+            background: var(--accent-color);
+            color: rgb(0, 0, 0);
+            grid-column: span 2;
+        }
+        
+        .sci-buttons button.equals:hover {
+            background: var(--button-hover);
+        }
+        
+        #inputs {
+            text-align: left;
+        }
+        
+        .bmi-category {
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .underweight { background-color: rgba(0, 0, 0, 0.2); color: #ffaa00; }
+        .normal { background-color: rgba(28, 28, 28, 0.2); color: #00ff88; }
+        .overweight { background-color: rgba(120, 93, 39, 0.2); color: #ffaa00; }
+        .obese { background-color: rgba(255, 51, 102, 0.2); color: #ff3366; }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            nav button {
+                padding: 10px;
+                font-size: 0.9rem;
+            }
+            
+            .sci-buttons {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            nav {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            nav button {
+                width: 100%;
+            }
+            
+            .sci-buttons {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            
+            .sci-buttons button {
+                padding: 10px 5px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-calculator"></i> Triple Threat Calculator</h1>
+        <nav>
+            <button id="btn-scientific" class="active" onclick="showTab('scientific')"><i class="fas fa-square-root-alt"></i> Scientific</button>
+            <button id="btn-financial" onclick="showTab('financial')"><i class="fas fa-chart-line"></i> Financial</button>
+            <button id="btn-bmi" onclick="showTab('bmi')"><i class="fas fa-weight"></i> BMI</button>
+        </nav>
+
+        <div id="scientific" class="tab-content active">
+            <h2>Scientific Calculator</h2>
+            <input type="text" id="sci-expression" placeholder="Enter mathematical expression (e.g., sin(30), log(10))">
+            <div class="sci-buttons">
+                <button onclick="appendToExpression('7')">7</button>
+                <button onclick="appendToExpression('8')">8</button>
+                <button onclick="appendToExpression('9')">9</button>
+                <button onclick="appendToExpression('/')" class="func">/</button>
+                <button onclick="appendToExpression('sqrt(')" class="func">√</button>
+                
+                <button onclick="appendToExpression('4')">4</button>
+                <button onclick="appendToExpression('5')">5</button>
+                <button onclick="appendToExpression('6')">6</button>
+                <button onclick="appendToExpression('*')" class="func">×</button>
+                <button onclick="appendToExpression('^')" class="func">^</button>
+                
+                <button onclick="appendToExpression('1')">1</button>
+                <button onclick="appendToExpression('2')">2</button>
+                <button onclick="appendToExpression('3')">3</button>
+                <button onclick="appendToExpression('-')" class="func">−</button>
+                <button onclick="appendToExpression('sin(')" class="func">sin</button>
+                
+                <button onclick="appendToExpression('0')">0</button>
+                <button onclick="appendToExpression('.')">.</button>
+                <button onclick="appendToExpression('%')" class="func">%</button>
+                <button onclick="appendToExpression('+')" class="func">+</button>
+                <button onclick="appendToExpression('cos(')" class="func">cos</button>
+                
+                <button onclick="clearExpression()" class="func">C</button>
+                <button onclick="appendToExpression('(')">(</button>
+                <button onclick="appendToExpression(')')">)</button>
+                <button onclick="appendToExpression('tan(')" class="func">tan</button>
+                <button onclick="appendToExpression('pi')">π</button>
+                
+                <button onclick="backspace()" class="func">⌫</button>
+                <button onclick="appendToExpression('log(')" class="func">log</button>
+                <button onclick="appendToExpression('e')">e</button>
+                <button onclick="calculateScientific()" class="equals">=</button>
+            </div>
+            <div id="sci-result" class="result">Result will appear here</div>
+        </div>
+
+        <div id="financial" class="tab-content">
+            <h2><i class="fas fa-chart-line"></i> Financial Calculator</h2>
+            <div class="form-group">
+                <label for="calculationType"><i class="fas fa-tasks"></i> Select Calculation:</label>
+                <select id="calculationType">
+                    <option value="emi">Loan EMI</option>
+                    <option value="fv">Future Value of Investment</option>
+                    <option value="compound">Compound Interest</option>
+                    <option value="simple">Simple Interest</option>
+                </select>
+            </div>
+
+            <div id="inputs">
+                <!-- Input fields will be dynamically added here -->
+            </div>
+
+            <button class="calculate" onclick="calculate()">Calculate <i class="fas fa-arrow-right"></i></button>
+
+            <div class="result" id="result">Results will appear here</div>
+        </div>
+
+        <div id="bmi" class="tab-content">
+            <h2><i class="fas fa-weight"></i> BMI Calculator</h2>
+            <div class="form-group">
+                <label for="weight"><i class="fas fa-balance-scale"></i> Weight:</label>
+                <input type="number" id="weight" placeholder="Enter weight in kg">
+            </div>
+            <div class="form-group">
+                <label for="height"><i class="fas fa-ruler-vertical"></i> Height:</label>
+                <input type="number" id="height" placeholder="Enter height in meters (e.g., 1.75)">
+            </div>
+            <button class="calculate" onclick="calculateBMI()">Calculate BMI <i class="fas fa-arrow-right"></i></button>
+            <div id="bmi-result" class="result">Your BMI will appear here</div>
+            <div id="bmi-category" class="bmi-category" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Reset all tab buttons
+            document.querySelectorAll('nav button').forEach(btn => btn.classList.remove('active'));
+            
+            // Reset all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+                tab.style.display = 'none';
+            });
+            
+            // Activate selected tab button
+            document.getElementById('btn-' + tabName).classList.add('active');
+            
+            // Activate and show selected tab content with animation
+            const selectedTab = document.getElementById(tabName);
+            selectedTab.classList.add('active');
+            selectedTab.style.display = 'block';
+        }
+
+        function appendToExpression(value) {
+            const expressionInput = document.getElementById('sci-expression');
+            expressionInput.value += value;
+            expressionInput.focus();
+        }
+
+        function clearExpression() {
+            document.getElementById('sci-expression').value = '';
+            document.getElementById('sci-result').textContent = 'Result will appear here';
+            document.getElementById('sci-expression').focus();
+        }
+
+        function backspace() {
+            const expressionInput = document.getElementById('sci-expression');
+            expressionInput.value = expressionInput.value.slice(0, -1);
+            expressionInput.focus();
+        }
+
+        function calculateScientific() {
+            const expression = document.getElementById('sci-expression').value;
+            try {
+                // Handle percentage calculation
+                const processedExpression = expression.replace(/%/g, '/100');
+                const result = math.evaluate(processedExpression);
+                document.getElementById('sci-result').innerHTML = `<i class="fas fa-equals"></i> ${result}`;
+                // Add calculation history if needed
+            } catch (error) {
+                document.getElementById('sci-result').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Invalid Expression!';
+            }
+        }
+
+        function calculateBMI() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value);
+            const categoryDiv = document.getElementById('bmi-category');
+            
+            if (!isNaN(weight) && !isNaN(height) && height > 0) {
+                const bmi = weight / (height * height);
+                let category, categoryClass;
+                
+                if (bmi < 18.5) {
+                    category = 'Underweight';
+                    categoryClass = 'underweight';
+                } else if (bmi < 24.9) {
+                    category = 'Normal weight';
+                    categoryClass = 'normal';
+                } else if (bmi < 29.9) {
+                    category = 'Overweight';
+                    categoryClass = 'overweight';
+                } else {
+                    category = 'Obese';
+                    categoryClass = 'obese';
+                }
+                
+                document.getElementById('bmi-result').innerHTML = `<i class="fas fa-calculator"></i> Your BMI: <strong>${bmi.toFixed(2)}</strong>`;
+                
+                categoryDiv.innerHTML = `<i class="fas fa-info-circle"></i> Category: <strong>${category}</strong>`;
+                categoryDiv.className = `bmi-category ${categoryClass}`;
+                categoryDiv.style.display = 'block';
+                
+            } else {
+                document.getElementById('bmi-result').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Invalid Input!';
+                categoryDiv.style.display = 'none';
+            }
+        }
+
+        const inputFields = {
+            emi: `
+                <div class="form-group">
+                    <label for="principal"><i class="fas fa-money-bill-wave"></i> Loan Amount (₹):</label>
+                    <input type="number" id="principal" placeholder="Enter loan amount">
+                </div>
+                <div class="form-group">
+                    <label for="rate"><i class="fas fa-percentage"></i> Interest Rate (%):</label>
+                    <input type="number" id="rate" placeholder="Enter interest rate">
+                </div>
+                <div class="form-group">
+                    <label for="time"><i class="fas fa-calendar-alt"></i> Loan Tenure (Years):</label>
+                    <input type="number" id="time" placeholder="Enter loan tenure">
+                </div>
+            `,
+            fv: `
+                <div class="form-group">
+                    <label for="principal"><i class="fas fa-coins"></i> Initial Investment (₹):</label>
+                    <input type="number" id="principal" placeholder="Enter initial investment">
+                </div>
+                <div class="form-group">
+                    <label for="rate"><i class="fas fa-percentage"></i> Annual Interest Rate (%):</label>
+                    <input type="number" id="rate" placeholder="Enter interest rate">
+                </div>
+                <div class="form-group">
+                    <label for="time"><i class="fas fa-hourglass-half"></i> Investment Period (Years):</label>
+                    <input type="number" id="time" placeholder="Enter investment period">
+                </div>
+            `,
+            compound: `
+                <div class="form-group">
+                    <label for="principal"><i class="fas fa-money-bill-alt"></i> Principal Amount (₹):</label>
+                    <input type="number" id="principal" placeholder="Enter principal amount">
+                </div>
+                <div class="form-group">
+                    <label for="rate"><i class="fas fa-percentage"></i> Annual Interest Rate (%):</label>
+                    <input type="number" id="rate" placeholder="Enter interest rate">
+                </div>
+                <div class="form-group">
+                    <label for="time"><i class="fas fa-clock"></i> Time Period (Years):</label>
+                    <input type="number" id="time" placeholder="Enter time period">
+                </div>
+            `,
+            simple: `
+                <div class="form-group">
+                    <label for="principal"><i class="fas fa-wallet"></i> Principal Amount (₹):</label>
+                    <input type="number" id="principal" placeholder="Enter principal amount">
+                </div>
+                <div class="form-group">
+                    <label for="rate"><i class="fas fa-percentage"></i> Annual Interest Rate (%):</label>
+                    <input type="number" id="rate" placeholder="Enter interest rate">
+                </div>
+                <div class="form-group">
+                    <label for="time"><i class="fas fa-calendar"></i> Time Period (Years):</label>
+                    <input type="number" id="time" placeholder="Enter time period">
+                </div>
+            `,
+        };
+
+        // Dynamically update input fields based on selected calculation
+        document.getElementById('calculationType').addEventListener('change', function () {
+            const type = this.value;
+            document.getElementById('inputs').innerHTML = inputFields[type];
+        });
+
+        // Initialize default input fields
+        document.getElementById('inputs').innerHTML = inputFields.emi;
+
+        // Main calculation function
+        function calculate() {
+            const type = document.getElementById('calculationType').value;
+            const principal = parseFloat(document.getElementById('principal').value);
+            const rate = parseFloat(document.getElementById('rate').value);
+            const time = parseFloat(document.getElementById('time').value);
+
+            if (isNaN(principal) || isNaN(rate) || isNaN(time)) {
+                document.getElementById('result').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Please enter valid numbers!';
+                return;
+            }
+
+            let result, resultText;
+            switch (type) {
+                case 'emi':
+                    const monthlyRate = (rate / 100) / 12;
+                    const months = time * 12;
+                    result = (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+                    resultText = `<i class="fas fa-money-bill-wave"></i> Monthly EMI: <strong>₹${result.toFixed(2)}</strong>`;
+                    resultText += `<br><small>Total Payment: ₹${(result * months).toFixed(2)} | Total Interest: ₹${((result * months) - principal).toFixed(2)}</small>`;
+                    break;
+                case 'fv':
+                    result = principal * Math.pow(1 + (rate / 100), time);
+                    resultText = `<i class="fas fa-chart-line"></i> Future Value: <strong>₹${result.toFixed(2)}</strong>`;
+                    resultText += `<br><small>Total Growth: ₹${(result - principal).toFixed(2)} (${(((result - principal) / principal) * 100).toFixed(2)}%)</small>`;
+                    break;
+                case 'compound':
+                    result = principal * Math.pow(1 + (rate / 100), time);
+                    resultText = `<i class="fas fa-percentage"></i> Compound Interest: <strong>₹${(result - principal).toFixed(2)}</strong>`;
+                    resultText += `<br><small>Final Amount: ₹${result.toFixed(2)}</small>`;
+                    break;
+                case 'simple':
+                    result = (principal * rate * time) / 100;
+                    resultText = `<i class="fas fa-chart-bar"></i> Simple Interest: <strong>₹${result.toFixed(2)}</strong>`;
+                    resultText += `<br><small>Final Amount: ₹${(principal + result).toFixed(2)}</small>`;
+                    break;
+                default:
+                    resultText = '<i class="fas fa-exclamation-triangle"></i> Invalid calculation type!';
+            }
+            document.getElementById('result').innerHTML = resultText;
+        }
+
+        // Execute immediately when page loads - Keyboard support for scientific calculator
+        document.addEventListener('DOMContentLoaded', function() {
+            const expressionInput = document.getElementById('sci-expression');
+            
+            expressionInput.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    calculateScientific();
+                }
+            });
+            
+            // Set default focus to scientific calculator input
+            expressionInput.focus();
+        });
+    </script>
+</body>
+</html>
